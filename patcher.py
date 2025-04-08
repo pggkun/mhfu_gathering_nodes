@@ -26,12 +26,9 @@ def patch_binary(base_path, address, input_path=None, input_bytes=None, output_p
 
 
 def patch(eboot_file):
-    patch_binary(eboot_file, 0x0891DC00 - EBOOT_BASE, input_path="bin/DAMAGE_DRAWING_JP.bin", input_bytes=None, output_path='temp.bin')
-    patch_binary("temp.bin", 0x0891D900- EBOOT_BASE, input_path="bin/DAMAGE_NUMBERS_JP.bin", input_bytes=None, output_path='temp.bin')
-    patch_binary("temp.bin", 0x0891DDB0 - EBOOT_BASE, input_path="bin/COPY_MATRIX.bin", input_bytes=None, output_path='temp.bin')
-
-    patch_binary("temp.bin", 0x00041DD0 + BASE_RAM - EBOOT_BASE, input_bytes=b'\x00\x77\x24\x0A', output_path=f'temp.bin')
-    patch_binary("temp.bin", 0x00069414 + BASE_RAM - EBOOT_BASE, input_bytes=b'\x6C\x77\x24\x0A', output_path=f"patched_{eboot_file}")
+    patch_binary(eboot_file, 0x0891E430 - EBOOT_BASE, input_path="bin/GATHERING_NODES_JP.bin", input_bytes=None, output_path='temp.bin')
+    patch_binary("temp.bin", 0x00045C94 + BASE_RAM - EBOOT_BASE, input_bytes=b'\x0C\x79\x24\x0A', output_path=f'temp.bin')
+    patch_binary("temp.bin", 0x00045C98 + BASE_RAM - EBOOT_BASE, input_bytes=b'\x00\x00\x00\x00', output_path=f"patched_{eboot_file}")
     os.remove("temp.bin")
 
 if __name__ == "__main__":
