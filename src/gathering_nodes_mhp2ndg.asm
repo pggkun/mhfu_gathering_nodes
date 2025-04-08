@@ -43,7 +43,28 @@ sceGeListEnQueue equ 0x0890BC50
     nop
 
 bug:
+    li		t0, 0x00180090
+    li		t1, ICON	
+    sw		t0, 0x0(t1)
 
+    li		t0, 0x003000A8
+    sw		t0, 0xc(t1)	
+    
+    j end_icon
+    nop
+
+mine:
+    li		t0, 0x00300018
+    li		t1, ICON	
+    sw		t0, 0x0(t1)
+
+    li		t0, 0x00480030
+    sw		t0, 0xc(t1)	
+    
+    j end_icon
+    nop
+
+unknown:
     li		t0, 0x00000000
     li		t1, BUTTON_ICON	
     sw		t0, 0x0(t1)
@@ -68,28 +89,6 @@ bug:
     li		t1, BUTTON_ICON	
     sw		t0, 0x14(t1)
 
-    li		t0, 0x00180090
-    li		t1, ICON	
-    sw		t0, 0x0(t1)
-
-    li		t0, 0x003000A8
-    sw		t0, 0xc(t1)	
-    
-    j end_icon
-    nop
-
-mine:
-    li		t0, 0x00300018
-    li		t1, ICON	
-    sw		t0, 0x0(t1)
-
-    li		t0, 0x00480030
-    sw		t0, 0xc(t1)	
-    
-    j end_icon
-    nop
-
-unknown:
     li		t0, 0x00600030
     li		t1, ICON	
     sw		t0, 0x0(t1)
