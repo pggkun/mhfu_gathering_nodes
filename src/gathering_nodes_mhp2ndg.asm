@@ -10,6 +10,9 @@ TRIGGER equ 0x0891E3D0
 ACTION_ID equ 0x090AF419
 MINING equ 0x51
 BUG_CATCHING equ 0x52
+CURRENT_ITEM equ 0x090AF814
+
+INVENTORY equ 0x09A00846
 
 BUTTONS_ADDR equ 0x08A5DD38
 BUTTON_CIRCLE equ 0x00002000
@@ -21,31 +24,6 @@ sceGeListEnQueue equ 0x0890BC50
     sw    v0, 0($sp)     
     sw    v1, 4($sp)     
     sw    ra, 8($sp)
-
-
-    li		t0, 0x00000000
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x0(t1)
-
-    li		t0, 0x00DBFFFF
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x4(t1)
-
-    li		t0, 0x00000064
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x8(t1)
-
-    li		t0, 0x00100010
-    li		t1, BUTTON_ICON	
-    sw		t0, 0xc(t1)
-
-    li		t0, 0x00EAFFFF
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x10(t1)
-
-    li		t0, 0x00000073
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x14(t1)    
 
 
     li a0, 0x090AF180
@@ -100,7 +78,25 @@ bug:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
+
+    ;todo: loop through bugnets on inventory
+    ;la      t2, CURRENT_ITEM
+    ;li      t3, 0x96
+    ;sb      t3, 0(t2)
+    jal get_current_bugnet
+    nop
+
+    la      t2, CURRENT_ITEM
+    lh      t3, 0(t2)
+    beqz    t3, end_icon
+    nop
+
+
     la      t2, ACTION_ID
+    lb      t4, 0(t2)
+    beq     t4, BUG_CATCHING, end_icon
+    nop
+
     li      t3, BUG_CATCHING
     sb      t3, 0(t2)
 
@@ -141,7 +137,24 @@ mine:
     sb      t3, 0(t2)
 
 
+    ;todo: loop through pickaxes on inventory
+    ;la      t2, CURRENT_ITEM
+    ;li      t3, 0x92
+    ;sb      t3, 0(t2)
+    jal get_current_pickaxe
+    nop
+
+    la      t2, CURRENT_ITEM
+    lh      t3, 0(t2)
+    beqz    t3, end_icon
+    nop
+
+
     la      t2, ACTION_ID
+    lb      t4, 0(t2)
+    beq     t4, MINING, end_icon
+    nop
+
     li      t3, MINING
     sb      t3, 0(t2)
     
@@ -149,7 +162,6 @@ mine:
     li      t3, 0x0
     sb      t3, 0(t2)
     sb      t3, 1(t2)
-    		
     
     j end_icon
     nop
@@ -204,6 +216,31 @@ end_icon:
     li		t0, 0x00000070
     sw		t0, 0x14(t1)
 
+    ;circle button ICON    
+    li		t0, 0x00000000
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x0(t1)
+
+    li		t0, 0x00DBFFFF
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x4(t1)
+
+    li		t0, 0x00000064
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x8(t1)
+
+    li		t0, 0x00100010
+    li		t1, BUTTON_ICON	
+    sw		t0, 0xc(t1)
+
+    li		t0, 0x00EAFFFF
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x10(t1)
+
+    li		t0, 0x00000073
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x14(t1)    
+
     li		a0, gpu_code
     li		a2, 0
     li		a3, 0
@@ -231,6 +268,64 @@ return:
     lhu	a1,-0x7478(v0)
 
     j 0x08845C9C
+    nop
+
+get_current_bugnet:
+    li      t0, INVENTORY - 4
+
+loop:
+    addiu   t0, t0, 4
+    lh      t1, 0(t0)
+    beq     t1, 0x94, return_item
+    nop
+
+    beq     t1, 0x95, return_item
+    nop
+
+    beq     t1, 0x96, return_item
+    nop
+
+    beq     t1, 0x4c9, return_item
+    nop
+
+    la      t2, 0x09A008A6 ; last item
+    bne     t0, t2, loop
+    nop
+
+return_item:
+    la      t2, CURRENT_ITEM
+    sh      t1, 0(t2)
+
+    jr ra
+    nop
+
+get_current_pickaxe:
+    li      t0, INVENTORY - 4
+
+p_loop:
+    addiu   t0, t0, 4
+    lh      t1, 0(t0)
+    beq     t1, 0x90, p_return_item
+    nop
+
+    beq     t1, 0x91, p_return_item
+    nop
+
+    beq     t1, 0x92, p_return_item
+    nop
+
+    beq     t1, 0x4cA, p_return_item
+    nop
+
+    la      t2, 0x09A008A6 ; last item
+    bne     t0, t2, p_loop
+    nop
+
+p_return_item:
+    la      t2, CURRENT_ITEM
+    sh      t1, 0(t2)
+
+    jr ra
     nop
 
 .align 0X10
