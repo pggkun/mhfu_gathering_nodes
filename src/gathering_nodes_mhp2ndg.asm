@@ -5,6 +5,14 @@
 VERTEX equ 0x0891E400
 ICON equ 0x0891E3E0
 BUTTON_ICON equ 0x0891E3C0
+TRIGGER equ 0x0891E3D0
+
+ACTION_ID equ 0x090AF419
+MINING equ 0x51
+BUG_CATCHING equ 0x52
+
+BUTTONS_ADDR equ 0x08A5DD38
+BUTTON_CIRCLE equ 0x00002000
 
 sceGeListEnQueue equ 0x0890BC50
 
@@ -12,7 +20,32 @@ sceGeListEnQueue equ 0x0890BC50
     addiu sp, sp, -0xC    
     sw    v0, 0($sp)     
     sw    v1, 4($sp)     
-    sw    ra, 8($sp)     
+    sw    ra, 8($sp)
+
+
+    li		t0, 0x00000000
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x0(t1)
+
+    li		t0, 0x00DBFFFF
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x4(t1)
+
+    li		t0, 0x00000064
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x8(t1)
+
+    li		t0, 0x00100010
+    li		t1, BUTTON_ICON	
+    sw		t0, 0xc(t1)
+
+    li		t0, 0x00EAFFFF
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x10(t1)
+
+    li		t0, 0x00000073
+    li		t1, BUTTON_ICON	
+    sw		t0, 0x14(t1)    
 
 
     li a0, 0x090AF180
@@ -48,7 +81,36 @@ bug:
     sw		t0, 0x0(t1)
 
     li		t0, 0x003000A8
-    sw		t0, 0xc(t1)	
+    sw		t0, 0xc(t1)
+
+
+    li		t2, BUTTONS_ADDR
+	lw		t3, 0(t2)
+
+	li		t4, BUTTON_CIRCLE
+	and		t5, t3, t4
+	bne		t5, t4, release_trigger
+	nop
+
+    la      t2, TRIGGER
+    lb      t3, 0(t2)
+    beq     t3, 0xFF, end_icon
+    nop
+
+    li      t3, 0xFF
+    sb      t3, 0(t2)
+
+    la      t2, ACTION_ID
+    li      t3, BUG_CATCHING
+    sb      t3, 0(t2)
+
+    la      t2, 0x90AF355
+    li      t3, 0x0
+    sb      t3, 0(t2)
+    sb      t3, 1(t2)
+    	
+
+    ;alterar para	
     
     j end_icon
     nop
@@ -59,42 +121,53 @@ mine:
     sw		t0, 0x0(t1)
 
     li		t0, 0x00480030
-    sw		t0, 0xc(t1)	
+    sw		t0, 0xc(t1)
+
+
+    li		t2, BUTTONS_ADDR
+	lw		t3, 0(t2)
+
+	li		t4, BUTTON_CIRCLE
+	and		t5, t3, t4
+	bne		t5, t4, release_trigger
+	nop
+
+    la      t2, TRIGGER
+    lb      t3, 0(t2)
+    beq     t3, 0xFF, end_icon
+    nop
+
+    li      t3, 0xFF
+    sb      t3, 0(t2)
+
+
+    la      t2, ACTION_ID
+    li      t3, MINING
+    sb      t3, 0(t2)
+    
+    la      t2, 0x90AF355
+    li      t3, 0x0
+    sb      t3, 0(t2)
+    sb      t3, 1(t2)
+    		
     
     j end_icon
     nop
 
 unknown:
-    li		t0, 0x00000000
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x0(t1)
-
-    li		t0, 0x00DBFFFF
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x4(t1)
-
-    li		t0, 0x00000064
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x8(t1)
-
-    li		t0, 0x00100010
-    li		t1, BUTTON_ICON	
-    sw		t0, 0xc(t1)
-
-    li		t0, 0x00EAFFFF
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x10(t1)
-
-    li		t0, 0x00000073
-    li		t1, BUTTON_ICON	
-    sw		t0, 0x14(t1)
-
     li		t0, 0x00600030
     li		t1, ICON	
     sw		t0, 0x0(t1)
 
     li		t0, 0x00780048
-    sw		t0, 0xc(t1)	
+    sw		t0, 0xc(t1)
+    j end_icon
+    nop
+
+release_trigger:
+    la      t2, TRIGGER
+    li      t3, 0x0
+    sb      t3, 0(t2)
 
 end_icon:
 
@@ -137,8 +210,8 @@ end_icon:
     jal		sceGeListEnQueue; 
     li		a1, 0x0
 
-    bnez    v1, return
-    nop
+    ;bnez    v1, return
+    ;nop
 
     li		a0, gpu_code2
     li		a2, 0
