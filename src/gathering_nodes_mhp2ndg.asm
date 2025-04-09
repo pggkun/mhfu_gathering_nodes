@@ -8,6 +8,9 @@ BUTTON_ICON equ 0x0891E3C0
 TRIGGER equ 0x0891E3D0
 
 ACTION_ID equ 0x090AF419
+;P2_ACTION_ID equ 0x090B99B9 ;+ A5A0 = P3
+;P3_ACTION_ID equ 0x090C3F59
+
 MINING equ 0x51
 BUG_CATCHING equ 0x52
 CURRENT_ITEM equ 0x090AF814
@@ -33,13 +36,62 @@ sceGeListEnQueue equ 0x0890BC50
     nop
 
     li t0, 0xFFFF
-    beq v0, t0, return
-    nop
+    beq v0, t0, return  ; todo: replace to sub alpha
+    nop                 
 
     lui  t1, 0xFFFF       
     and  t0, v1, t1       
-    bnez t0, return
+    bnez t0, return     ; todo: replace to sub alpha
     nop
+
+    j skip_alpha_operations
+
+subtract_alpha:
+    li t0, VERTEX
+    lhu t1, 0x6(t0)
+
+    beqz t1, skip_alpha_operations
+    nop
+
+    li t2, 0x0F
+    beq t1, t2, skip_alpha_operations
+    nop
+
+    addiu   t1, t1, -1
+    sb      t1, 0x5(t0)
+    sb      t1, 0x11(t0)
+
+    j skip_alpha_operations 
+
+add_alpha:
+
+    li t0, VERTEX
+    lbu t1, 0x5(t0)
+
+    beqz t1, set_minimum
+    nop
+
+    li t2, 0xFF
+    beq t1, t2, skip_alpha_operations
+    nop
+
+    addiu   t1, t1, 1
+    sb      t1, 0x5(t0)
+    sb      t1, 0x11(t0)  
+
+    j skip_alpha_operations
+
+set_minimum:
+    li t0, VERTEX
+    li t1, 0x0F
+    sh t1, 0x5(t0)
+    sh t1, 0x11(t0)
+
+skip_alpha_operations:
+    li t0, VERTEX
+    li t1, 0xFFFF
+    sh t1, 0x4(t0);
+    sh t1, 0x10(t0);
 
     li t0, 0x4
     beq t0, v1, bug
@@ -53,6 +105,9 @@ sceGeListEnQueue equ 0x0890BC50
     nop
 
 bug:
+    jal get_current_bugnet
+    nop
+
     li		t0, 0x00180090
     li		t1, ICON	
     sw		t0, 0x0(t1)
@@ -77,11 +132,6 @@ bug:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
-    j get_current_bugnet
-    nop
-
-got_current_bugnet:
-
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
     beqz    t3, end_icon
@@ -105,6 +155,9 @@ got_current_bugnet:
     nop
 
 mine:
+    jal get_current_pickaxe
+    nop
+
     li		t0, 0x00300018
     li		t1, ICON	
     sw		t0, 0x0(t1)
@@ -128,10 +181,6 @@ mine:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
-    j get_current_pickaxe
-    nop
-
-got_current_pickaxe: 
 
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
@@ -161,6 +210,11 @@ unknown:
 
     li		t0, 0x00780048
     sw		t0, 0xc(t1)
+
+    li      t2, CURRENT_ITEM
+    li      t3, 0xFFFF
+    sh      t3, 0(t2)
+
     j end_icon
     nop
 
@@ -188,8 +242,8 @@ end_icon:
     li		t1, VERTEX	
     sw		t0, 0x0(t1)
 
-    li		t0, 0x00E1FFFF
-    sw		t0, 0x4(t1)
+    li		t0, 0x00E1
+    sh		t0, 0x6(t1)
 
     li		t0, 0x00000050
     sw		t0, 0x8(t1)
@@ -197,8 +251,8 @@ end_icon:
     li		t0, 0x010000FC
     sw		t0, 0xc(t1)	
 
-    li		t0, 0x0101FFFF
-    sw		t0, 0x10(t1)	
+    li		t0, 0x0101
+    sh		t0, 0x12(t1)	
 
     li		t0, 0x00000070
     sw		t0, 0x14(t1)
@@ -233,6 +287,11 @@ end_icon:
     li		a3, 0
     jal		sceGeListEnQueue; 
     li		a1, 0x0
+
+    li t0, CURRENT_ITEM
+    lh t1, 0(t0)
+    beqz    t1, return 
+    nop
 
     li		a0, gpu_code2
     li		a2, 0
@@ -281,7 +340,7 @@ return_item:
     li      t2, CURRENT_ITEM
     sh      t1, 0(t2)
 
-    j got_current_bugnet
+    jr ra
     nop
 
 get_current_pickaxe:
@@ -311,7 +370,7 @@ p_return_item:
     li      t2, CURRENT_ITEM
     sh      t1, 0(t2)
 
-    j got_current_pickaxe
+    jr ra
     nop
 
 .align 0X10
@@ -336,7 +395,7 @@ gpu_code:
 	.word	0x1E000001 ; Texture map enable: 1
 	.word	0xC9000100 ; TexFunc 0 RGBA modulate
 	.word	0x50000001 ; Shade: 1 (gouraud)
-	.word	0x12800116 ; SetVertexType: through, u16 texcoords, ABGR 1555 colors, s16 positions| vertex use 1280011E
+	.word	0x1280011A ; SetVertexType: through, u16 texcoords, ABGR 4444 colors, s16 positions
 	.word	0x10080000 ; BASE: high=08
 	vaddr	VERTEX - 0x08000000
 	.word	0x04060002 ; DRAW PRIM RECTANGLES: count= 2 vaddr= 08a88714
@@ -362,7 +421,7 @@ gpu_code:
 	.word	0x1E000001 ; Texture map enable: 1
 	.word	0xC9000100 ; TexFunc 0 RGBA modulate
 	.word	0x50000001 ; Shade: 1 (gouraud)
-	.word	0x12800116 ; SetVertexType: through, u16 texcoords, ABGR 1555 colors, s16 positions| vertex use 1280011E
+	.word	0x1280011A ; SetVertexType: through, u16 texcoords, ABGR 4444 colors, s16 positions
 	.word	0x10080000 ; BASE: high=08
 	vaddr	ICON - 0x08000000
 	.word	0x04060002 ; DRAW PRIM RECTANGLES: count= 2 vaddr= 08a88714
@@ -390,7 +449,7 @@ gpu_code2:
 	.word	0x1E000001 ; Texture map enable: 1
 	.word	0xC9000100 ; TexFunc 0 RGBA modulate
 	.word	0x50000001 ; Shade: 1 (gouraud)
-	.word	0x12800116 ; SetVertexType: through, u16 texcoords, ABGR 1555 colors, s16 positions| vertex use 1280011E
+	.word	0x1280011A ; SetVertexType: through, u16 texcoords, ABGR 4444 colors, s16 positions
 	.word	0x10080000 ; BASE: high=08
 	vaddr	BUTTON_ICON - 0x08000000
 	.word	0x04060002 ; DRAW PRIM RECTANGLES: count= 2 vaddr= 08a88714
