@@ -25,7 +25,6 @@ sceGeListEnQueue equ 0x0890BC50
     sw    v1, 4($sp)     
     sw    ra, 8($sp)
 
-
     li a0, 0x090AF180
     li a1, 0x09FFF4BE
     li a2, 0x09FFF4A0
@@ -78,13 +77,10 @@ bug:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
-
-    ;todo: loop through bugnets on inventory
-    ;la      t2, CURRENT_ITEM
-    ;li      t3, 0x96
-    ;sb      t3, 0(t2)
-    jal get_current_bugnet
+    j get_current_bugnet
     nop
+
+got_current_bugnet:
 
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
@@ -104,9 +100,6 @@ bug:
     li      t3, 0x0
     sb      t3, 0(t2)
     sb      t3, 1(t2)
-    	
-
-    ;alterar para	
     
     j end_icon
     nop
@@ -118,7 +111,6 @@ mine:
 
     li		t0, 0x00480030
     sw		t0, 0xc(t1)
-
 
     li		t2, BUTTONS_ADDR
 	lw		t3, 0(t2)
@@ -136,19 +128,15 @@ mine:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
-
-    ;todo: loop through pickaxes on inventory
-    ;la      t2, CURRENT_ITEM
-    ;li      t3, 0x92
-    ;sb      t3, 0(t2)
-    jal get_current_pickaxe
+    j get_current_pickaxe
     nop
+
+got_current_pickaxe: 
 
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
     beqz    t3, end_icon
     nop
-
 
     la      t2, ACTION_ID
     lb      t4, 0(t2)
@@ -182,7 +170,7 @@ release_trigger:
     sb      t3, 0(t2)
 
 end_icon:
-
+    li		t1, ICON
     li		t0, 0x00E5FFFF
     sw		t0, 0x4(t1)
 
@@ -194,7 +182,6 @@ end_icon:
 
     li		t0, 0x0000006C
     sw		t0, 0x14(t1)
-
 
     ;base
     li		t0, 0x00E000DC	
@@ -247,9 +234,6 @@ end_icon:
     jal		sceGeListEnQueue; 
     li		a1, 0x0
 
-    ;bnez    v1, return
-    ;nop
-
     li		a0, gpu_code2
     li		a2, 0
     li		a3, 0
@@ -272,6 +256,7 @@ return:
 
 get_current_bugnet:
     li      t0, INVENTORY - 4
+    li      t1, 0x0
 
 loop:
     addiu   t0, t0, 4
@@ -288,19 +273,20 @@ loop:
     beq     t1, 0x4c9, return_item
     nop
 
-    la      t2, 0x09A008A6 ; last item
+    li      t2, 0x09A008A6 ; last item
     bne     t0, t2, loop
     nop
 
 return_item:
-    la      t2, CURRENT_ITEM
+    li      t2, CURRENT_ITEM
     sh      t1, 0(t2)
 
-    jr ra
+    j got_current_bugnet
     nop
 
 get_current_pickaxe:
     li      t0, INVENTORY - 4
+    li      t1, 0x0
 
 p_loop:
     addiu   t0, t0, 4
@@ -317,15 +303,15 @@ p_loop:
     beq     t1, 0x4cA, p_return_item
     nop
 
-    la      t2, 0x09A008A6 ; last item
+    li      t2, 0x09A008A6 ; last item
     bne     t0, t2, p_loop
     nop
 
 p_return_item:
-    la      t2, CURRENT_ITEM
+    li      t2, CURRENT_ITEM
     sh      t1, 0(t2)
 
-    jr ra
+    j got_current_pickaxe
     nop
 
 .align 0X10
