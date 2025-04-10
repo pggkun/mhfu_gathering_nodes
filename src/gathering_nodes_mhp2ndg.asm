@@ -7,9 +7,9 @@ ICON equ 0x0891E3E0
 BUTTON_ICON equ 0x0891E3C0
 TRIGGER equ 0x0891E3D0
 
-ACTION_ID equ 0x090AF419
-;P2_ACTION_ID equ 0x090B99B9 ;+ A5A0 = P3
-;P3_ACTION_ID equ 0x090C3F59
+ACTION_ID equ 0x090AF419 ; 090AF180
+;P2_ACTION_ID equ 0x90B99B9 ;+ A5A0 = P3  ? 090B9720
+;P3_ACTION_ID equ 0x90C3AA9 ? 090C3810
 
 MINING equ 0x51
 BUG_CATCHING equ 0x52
@@ -36,19 +36,19 @@ sceGeListEnQueue equ 0x0890BC50
     nop
 
     li t0, 0xFFFF
-    beq v0, t0, return  ; todo: replace to sub alpha
+    beq v0, t0, subtract_alpha  ; todo: replace to sub alpha
     nop                 
 
     lui  t1, 0xFFFF       
     and  t0, v1, t1       
-    bnez t0, return     ; todo: replace to sub alpha
+    bnez t0, subtract_alpha     ; todo: replace to sub alpha
     nop
 
-    j skip_alpha_operations
+    j add_alpha
 
 subtract_alpha:
     li t0, VERTEX
-    lhu t1, 0x6(t0)
+    lbu t1, 0x5(t0)
 
     beqz t1, skip_alpha_operations
     nop
@@ -57,29 +57,55 @@ subtract_alpha:
     beq t1, t2, skip_alpha_operations
     nop
 
-    addiu   t1, t1, -1
+    addiu   t1, t1, -0x40
+
+    beq t1, 0xFFFFFFFF, adjust_to_min
+    nop
+
     sb      t1, 0x5(t0)
     sb      t1, 0x11(t0)
 
-    j skip_alpha_operations 
+    j skip_alpha_operations
+    nop
+
+adjust_to_min:
+    li      t1, 0x0F
+    sb      t1, 0x5(t0)
+    sb      t1, 0x11(t0)
+
+    j skip_alpha_operations
+    nop
 
 add_alpha:
 
     li t0, VERTEX
     lbu t1, 0x5(t0)
 
-    beqz t1, set_minimum
+    blt t1, 0x0F, set_minimum
     nop
 
     li t2, 0xFF
     beq t1, t2, skip_alpha_operations
     nop
 
-    addiu   t1, t1, 1
+    addiu   t1, t1, 0x40
+
+    beq t1, 0x10F, adjust_to_max
+    nop
+
     sb      t1, 0x5(t0)
-    sb      t1, 0x11(t0)  
+    sb      t1, 0x11(t0)
 
     j skip_alpha_operations
+    nop
+
+adjust_to_max:
+    li      t1, 0xFF
+    sb      t1, 0x5(t0)
+    sb      t1, 0x11(t0)
+
+    j skip_alpha_operations
+    nop
 
 set_minimum:
     li t0, VERTEX
@@ -89,9 +115,9 @@ set_minimum:
 
 skip_alpha_operations:
     li t0, VERTEX
-    li t1, 0xFFFF
-    sh t1, 0x4(t0);
-    sh t1, 0x10(t0);
+    li t1, 0xFF
+    sb t1, 0x4(t0);
+    sb t1, 0x10(t0);
 
     li t0, 0x4
     beq t0, v1, bug
@@ -288,6 +314,18 @@ end_icon:
     jal		sceGeListEnQueue; 
     li		a1, 0x0
 
+    li t0, VERTEX
+    lbu t1, 0x5(t0)
+    bne t1, 0xFF, return
+    nop
+
+    li		a0, gpu_code_icon
+    li		a2, 0
+    li		a3, 0
+    jal		sceGeListEnQueue; 
+    li		a1, 0x0
+    
+
     li t0, CURRENT_ITEM
     lh t1, 0(t0)
     beqz    t1, return 
@@ -399,8 +437,10 @@ gpu_code:
 	.word	0x10080000 ; BASE: high=08
 	vaddr	VERTEX - 0x08000000
 	.word	0x04060002 ; DRAW PRIM RECTANGLES: count= 2 vaddr= 08a88714
+    finish
+	end
 
-
+gpu_code_icon:
     .word	0xC9000100 ; TexFunc 0 RGBA modulate
 	.word	0xC0000000 ; Tex map mode: uvgen=texcoords, uvproj=pos
 	.word	0xC7000000 ; TexWrap wrap s, wrap t
