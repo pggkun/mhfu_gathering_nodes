@@ -6,14 +6,19 @@ VERTEX equ 0x0891E400
 ICON equ 0x0891E3E0
 BUTTON_ICON equ 0x0891E3C0
 TRIGGER equ 0x0891E3D0
+PLAYER_ID equ 0x0891E3B0
 
+;player id = 09A19318 ? ff = 01
 ACTION_ID equ 0x090AF419 ; 090AF180
-;P2_ACTION_ID equ 0x90B99B9 ;+ A5A0 = P3  ? 090B9720
-;P3_ACTION_ID equ 0x90C3AA9 ? 090C3810
+;P2_ACTION_ID equ 0x090B99B9 ; 0x090B9720
+;P3_ACTION_ID equ 0x090C38B9 ; 0x90C3620
+;P4 ? 0x090CDE59; 0x90CDBC0
 
 MINING equ 0x51
 BUG_CATCHING equ 0x52
+
 CURRENT_ITEM equ 0x090AF814
+CURRENT_ITEM_P2 equ 0x090B9DB4
 
 INVENTORY equ 0x09A00846
 
@@ -28,7 +33,44 @@ sceGeListEnQueue equ 0x0890BC50
     sw    v1, 4($sp)     
     sw    ra, 8($sp)
 
+    jal get_player_id
+    nop
+
+    li t0, PLAYER_ID
+    lb t1, 0(t0)
+    beq t1, 0x1, load_p1
+    nop
+
+    beq t1, 0x2, load_p2
+    nop
+
+    beq t1, 0x3, load_p3
+    nop
+
+    beq t1, 0x4, load_p4
+    nop
+
+load_p1:
     li a0, 0x090AF180
+    j finish_p_load
+    nop
+
+load_p2:
+    li a0, 0x090B9720
+    j finish_p_load
+    nop
+
+load_p3:
+    li a0, 0x90C3620
+    j finish_p_load
+    nop
+
+load_p4:
+    li a0, 0x90CDBC0
+    j finish_p_load
+    nop
+
+finish_p_load:
     li a1, 0x09FFF4BE
     li a2, 0x09FFF4A0
 
@@ -110,8 +152,8 @@ adjust_to_max:
 set_minimum:
     li t0, VERTEX
     li t1, 0x0F
-    sh t1, 0x5(t0)
-    sh t1, 0x11(t0)
+    sb t1, 0x5(t0)
+    sb t1, 0x11(t0)
 
 skip_alpha_operations:
     li t0, VERTEX
@@ -158,11 +200,20 @@ bug:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
+
+    li t0, PLAYER_ID
+    lb t1, 0(t0)
+    beq t1, 0x1, bug_p1
+    nop
+
+    beq t1, 0x2, bug_p2
+    nop
+
+bug_p1:
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
     beqz    t3, end_icon
     nop
-
 
     la      t2, ACTION_ID
     lb      t4, 0(t2)
@@ -173,6 +224,29 @@ bug:
     sb      t3, 0(t2)
 
     la      t2, 0x90AF355
+    li      t3, 0x0
+    sb      t3, 0(t2)
+    sb      t3, 1(t2)
+
+    j end_icon
+    nop
+
+bug_p2:
+    la      t2, CURRENT_ITEM_P2
+    lh      t3, 0(t2)
+    beqz    t3, end_icon
+    nop
+
+
+    la      t2, 0x90B99B9
+    lb      t4, 0(t2)
+    beq     t4, BUG_CATCHING, end_icon
+    nop
+
+    li      t3, BUG_CATCHING
+    sb      t3, 0(t2)
+
+    la      t2, 0x090B98F5
     li      t3, 0x0
     sb      t3, 0(t2)
     sb      t3, 1(t2)
@@ -207,7 +281,15 @@ mine:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
+    li t0, PLAYER_ID
+    lb t1, 0(t0)
+    beq t1, 0x1, pick_p1
+    nop
 
+    beq t1, 0x2, pick_p2
+    nop
+
+pick_p1:
     la      t2, CURRENT_ITEM
     lh      t3, 0(t2)
     beqz    t3, end_icon
@@ -220,8 +302,30 @@ mine:
 
     li      t3, MINING
     sb      t3, 0(t2)
-    
+
     la      t2, 0x90AF355
+    li      t3, 0x0
+    sb      t3, 0(t2)
+    sb      t3, 1(t2)
+
+    j end_icon
+    nop
+
+pick_p2:
+    la      t2, CURRENT_ITEM_P2
+    lh      t3, 0(t2)
+    beqz    t3, end_icon
+    nop
+
+    la      t2, 0x90B99B9
+    lb      t4, 0(t2)
+    beq     t4, MINING, end_icon
+    nop
+
+    li      t3, MINING
+    sb      t3, 0(t2)
+
+    la      t2, 0x090B98F5
     li      t3, 0x0
     sb      t3, 0(t2)
     sb      t3, 1(t2)
@@ -325,12 +429,35 @@ end_icon:
     jal		sceGeListEnQueue; 
     li		a1, 0x0
     
+    li t0, PLAYER_ID
+    lb t1, 0(t0)
+    beq t1, 0x1, check_item_p1
+    nop
 
+    beq t1, 0x2, check_item_p2
+    nop
+
+    j return
+
+check_item_p1:
     li t0, CURRENT_ITEM
     lh t1, 0(t0)
     beqz    t1, return 
     nop
 
+    j draw_button
+    nop
+
+check_item_p2:
+    li t0, CURRENT_ITEM_P2
+    lh t1, 0(t0)
+    beqz    t1, return 
+    nop
+
+    j draw_button
+    nop
+
+draw_button:
     li		a0, gpu_code2
     li		a2, 0
     li		a3, 0
@@ -375,7 +502,22 @@ loop:
     nop
 
 return_item:
+    li t3, PLAYER_ID
+    lb t4, 0(t3)
+    beq t4, 0x1, set_p1_item
+    nop
+
+    beq t4, 0x2, set_p2_item
+    nop
+
+set_p1_item:
     li      t2, CURRENT_ITEM
+    sh      t1, 0(t2)
+
+    jr ra
+    nop
+set_p2_item:
+    li      t2, CURRENT_ITEM_P2
     sh      t1, 0(t2)
 
     jr ra
@@ -405,11 +547,49 @@ p_loop:
     nop
 
 p_return_item:
-    li      t2, CURRENT_ITEM
-    sh      t1, 0(t2)
+    li t3, PLAYER_ID
+    lb t4, 0(t3)
+    beq t4, 0x1, set_p1_item
+    nop
+
+    beq t4, 0x2, set_p2_item
+    nop
+
+    ;li      t2, CURRENT_ITEM
+    ;sh      t1, 0(t2)
+
+    ;jr ra
+    ;nop
+
+get_player_id:
+    li t0, 0x09A19318 ; addr found in a adhoc recv function breakpoint
+    li t1, 0x1
+    lb t2, 0(t0)
+    beq t2, 0xFFFFFFFF, assign_player_id
+    nop
+
+    li t1, 0x2
+    lb t2, 0x4(t0)
+    beq t2, 0xFFFFFFFF, assign_player_id
+    nop
+
+    li t1, 0x3
+    lb t2, 0x8(t0)
+    beq t2, 0xFFFFFFFF, assign_player_id
+    nop
+
+    li t1, 0x4
+    lb t2, 0xC(t0)
+    beq t2, 0xFFFFFFFF, assign_player_id
+    nop
+
+    li t1, 0x1
+
+assign_player_id:
+    li t0, PLAYER_ID
+    sb t1, 0(t0)
 
     jr ra
-    nop
 
 .align 0X10
 gpu_code:
