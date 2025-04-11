@@ -220,6 +220,10 @@ bug_p1:
     beq     t4, BUG_CATCHING, end_icon
     nop
 
+    lb      t3, 0x8C(t2) 
+    bnez    t3, end_icon
+    nop
+
     li      t3, BUG_CATCHING
     sb      t3, 0(t2)
 
@@ -241,6 +245,10 @@ bug_p2:
     la      t2, 0x90B99B9
     lb      t4, 0(t2)
     beq     t4, BUG_CATCHING, end_icon
+    nop
+
+    lb      t3, 0x8C(t2) 
+    bnez    t3, end_icon
     nop
 
     li      t3, BUG_CATCHING
@@ -300,6 +308,10 @@ pick_p1:
     beq     t4, MINING, end_icon
     nop
 
+    lb      t3, 0x8C(t2) 
+    bnez    t3, end_icon
+    nop
+
     li      t3, MINING
     sb      t3, 0(t2)
 
@@ -320,6 +332,10 @@ pick_p2:
     la      t2, 0x90B99B9
     lb      t4, 0(t2)
     beq     t4, MINING, end_icon
+    nop
+
+    lb      t3, 0x8C(t2) 
+    bnez    t3, end_icon
     nop
 
     li      t3, MINING
