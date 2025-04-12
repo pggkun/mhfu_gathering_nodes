@@ -10,9 +10,11 @@ PLAYER_ID equ 0x0891E3B0
 
 ;player id = 09A19318 ? ff = 01
 ACTION_ID equ 0x090AF419 ; 090AF180
-;P2_ACTION_ID equ 0x090B99B9 ; 0x090B9720
+;P2_ACTION_ID equ 0x090B99B9 ; 0x090B9720; 0x90B9319 => 09 0B 90 80?
 ;P3_ACTION_ID equ 0x090C38B9 ; 0x90C3620
 ;P4 ? 0x090CDE59; 0x90CDBC0
+
+BASE_ID equ 0x99954F4
 
 MINING equ 0x51
 BUG_CATCHING equ 0x52
@@ -51,22 +53,26 @@ sceGeListEnQueue equ 0x0890BC50
     nop
 
 load_p1:
-    li a0, 0x090AF180
+    li t0, BASE_ID
+    lw a0, 0(t0)
     j finish_p_load
     nop
 
 load_p2:
-    li a0, 0x090B9720
+    li t0, BASE_ID
+    lw a0, 0(t0)
     j finish_p_load
     nop
 
 load_p3:
-    li a0, 0x90C3620
+    li t0, BASE_ID
+    lw a0, 0(t0)
     j finish_p_load
     nop
 
 load_p4:
-    li a0, 0x90CDBC0
+    li t0, BASE_ID
+    lw a0, 0(t0)
     j finish_p_load
     nop
 
@@ -201,64 +207,31 @@ bug:
     sb      t3, 0(t2)
 
 
-    li t0, PLAYER_ID
-    lb t1, 0(t0)
-    beq t1, 0x1, bug_p1
-    nop
+    li t0, BASE_ID
+    lw t1, 0(t0)
 
-    beq t1, 0x2, bug_p2
-    nop
-
-bug_p1:
-    la      t2, CURRENT_ITEM
-    lh      t3, 0(t2)
+    ;la      t2, CURRENT_ITEM
+    lh      t3, 0x694(t1)
     beqz    t3, end_icon
     nop
 
-    la      t2, ACTION_ID
-    lb      t4, 0(t2)
+    ;la      t2, ACTION_ID
+    lb      t4, 0x299(t1)
     beq     t4, BUG_CATCHING, end_icon
     nop
 
-    lb      t3, 0x8C(t2) 
-    bnez    t3, end_icon
+    lb      t3, 0x325(t1) 
+    bgt     t3, 0x1,  end_icon
     nop
 
     li      t3, BUG_CATCHING
-    sb      t3, 0(t2)
+    sb      t3, 0x299(t1)
 
-    la      t2, 0x90AF355
+    ;la      t2, 0x90AF355
     li      t3, 0x0
-    sb      t3, 0(t2)
-    sb      t3, 1(t2)
+    sb      t3, 0x1D5(t1)
+    sb      t3, 0x1D6(t1)
 
-    j end_icon
-    nop
-
-bug_p2:
-    la      t2, CURRENT_ITEM_P2
-    lh      t3, 0(t2)
-    beqz    t3, end_icon
-    nop
-
-
-    la      t2, 0x90B99B9
-    lb      t4, 0(t2)
-    beq     t4, BUG_CATCHING, end_icon
-    nop
-
-    lb      t3, 0x8C(t2) 
-    bnez    t3, end_icon
-    nop
-
-    li      t3, BUG_CATCHING
-    sb      t3, 0(t2)
-
-    la      t2, 0x090B98F5
-    li      t3, 0x0
-    sb      t3, 0(t2)
-    sb      t3, 1(t2)
-    
     j end_icon
     nop
 
@@ -289,63 +262,30 @@ mine:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
-    li t0, PLAYER_ID
-    lb t1, 0(t0)
-    beq t1, 0x1, pick_p1
-    nop
 
-    beq t1, 0x2, pick_p2
-    nop
+    li t0, BASE_ID
+    lw t1, 0(t0)
 
-pick_p1:
-    la      t2, CURRENT_ITEM
-    lh      t3, 0(t2)
+    lh      t3, 0x694(t1)
     beqz    t3, end_icon
     nop
 
-    la      t2, ACTION_ID
-    lb      t4, 0(t2)
+    lb      t4, 0x299(t1)
     beq     t4, MINING, end_icon
     nop
 
-    lb      t3, 0x8C(t2) 
-    bnez    t3, end_icon
+    lb      t3, 0x325(t1) 
+    bgt     t3, 0x1, end_icon
     nop
 
     li      t3, MINING
-    sb      t3, 0(t2)
+    sb      t3, 0x299(t1)
 
-    la      t2, 0x90AF355
+    ;la      t2, 0x90AF355
     li      t3, 0x0
-    sb      t3, 0(t2)
-    sb      t3, 1(t2)
+    sb      t3, 0x1D5(t1)
+    sb      t3, 0x1D6(t1)
 
-    j end_icon
-    nop
-
-pick_p2:
-    la      t2, CURRENT_ITEM_P2
-    lh      t3, 0(t2)
-    beqz    t3, end_icon
-    nop
-
-    la      t2, 0x90B99B9
-    lb      t4, 0(t2)
-    beq     t4, MINING, end_icon
-    nop
-
-    lb      t3, 0x8C(t2) 
-    bnez    t3, end_icon
-    nop
-
-    li      t3, MINING
-    sb      t3, 0(t2)
-
-    la      t2, 0x090B98F5
-    li      t3, 0x0
-    sb      t3, 0(t2)
-    sb      t3, 1(t2)
-    
     j end_icon
     nop
 
@@ -357,9 +297,15 @@ unknown:
     li		t0, 0x00780048
     sw		t0, 0xc(t1)
 
-    li      t2, CURRENT_ITEM
+    ;li      t2, CURRENT_ITEM
+
+    li      t0, BASE_ID
+    lw      t1, 0(t0)
+
+    ;lh      t2, 0x694(t1)
+
     li      t3, 0xFFFF
-    sh      t3, 0(t2)
+    sh      t3, 0x694(t1)
 
     j end_icon
     nop
@@ -445,35 +391,14 @@ end_icon:
     jal		sceGeListEnQueue; 
     li		a1, 0x0
     
-    li t0, PLAYER_ID
-    lb t1, 0(t0)
-    beq t1, 0x1, check_item_p1
+
+    li      t0, BASE_ID
+    lw      t1, 0(t0)
+    lh      t2, 0x694(t1)
+
+    beqz    t2, return 
     nop
 
-    beq t1, 0x2, check_item_p2
-    nop
-
-    j return
-
-check_item_p1:
-    li t0, CURRENT_ITEM
-    lh t1, 0(t0)
-    beqz    t1, return 
-    nop
-
-    j draw_button
-    nop
-
-check_item_p2:
-    li t0, CURRENT_ITEM_P2
-    lh t1, 0(t0)
-    beqz    t1, return 
-    nop
-
-    j draw_button
-    nop
-
-draw_button:
     li		a0, gpu_code2
     li		a2, 0
     li		a3, 0
@@ -518,23 +443,11 @@ loop:
     nop
 
 return_item:
-    li t3, PLAYER_ID
-    lb t4, 0(t3)
-    beq t4, 0x1, set_p1_item
-    nop
-
-    beq t4, 0x2, set_p2_item
-    nop
-
-set_p1_item:
-    li      t2, CURRENT_ITEM
-    sh      t1, 0(t2)
-
-    jr ra
-    nop
-set_p2_item:
-    li      t2, CURRENT_ITEM_P2
-    sh      t1, 0(t2)
+    li      t0, BASE_ID
+    lw      t2, 0(t0)
+    
+    ;li      t2, CURRENT_ITEM
+    sh      t1, 0x694(t2)
 
     jr ra
     nop
@@ -563,19 +476,14 @@ p_loop:
     nop
 
 p_return_item:
-    li t3, PLAYER_ID
-    lb t4, 0(t3)
-    beq t4, 0x1, set_p1_item
-    nop
-
-    beq t4, 0x2, set_p2_item
-    nop
-
+    li      t0, BASE_ID
+    lw      t2, 0(t0)
+    
     ;li      t2, CURRENT_ITEM
-    ;sh      t1, 0(t2)
+    sh      t1, 0x694(t2)
 
-    ;jr ra
-    ;nop
+    jr ra
+    nop
 
 get_player_id:
     li t0, 0x09A19318 ; addr found in a adhoc recv function breakpoint
