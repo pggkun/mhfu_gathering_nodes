@@ -7,6 +7,7 @@ ICON equ 0x0891E3E0
 BUTTON_ICON equ 0x0891E3C0
 TRIGGER equ 0x0891E3D0
 PLAYER_ID equ 0x0891E3B0
+LAST_ITEM equ 0x0891E3A0
 
 ;player id = 09A19318 ? ff = 01
 ACTION_ID equ 0x090AF419 ; 090AF180
@@ -206,12 +207,18 @@ bug:
     li      t3, 0xFF
     sb      t3, 0(t2)
 
+    li      t1,  LAST_ITEM
+    lh      t3, 0(t1)
+    li      t0, BASE_ID
+    lw      t2, 0(t0)
+    sh      t3, 0x694(t2)
+
 
     li t0, BASE_ID
     lw t1, 0(t0)
 
     ;la      t2, CURRENT_ITEM
-    lh      t3, 0x694(t1)
+    ;lh      t3, 0x694(t1)
     beqz    t3, end_icon
     nop
 
@@ -263,10 +270,16 @@ mine:
     sb      t3, 0(t2)
 
 
+    li      t1,  LAST_ITEM
+    lh      t3, 0(t1)
+    li      t0, BASE_ID
+    lw      t2, 0(t0)
+    sh      t3, 0x694(t2)
+
     li t0, BASE_ID
     lw t1, 0(t0)
 
-    lh      t3, 0x694(t1)
+    ;lh      t3, 0x694(t1)
     beqz    t3, end_icon
     nop
 
@@ -304,8 +317,11 @@ unknown:
 
     ;lh      t2, 0x694(t1)
 
+    li      t0,  LAST_ITEM
     li      t3, 0xFFFF
-    sh      t3, 0x694(t1)
+    sh      t3, 0(t0)
+
+    ;sh      t3, 0x694(t1)
 
     j end_icon
     nop
@@ -392,11 +408,10 @@ end_icon:
     li		a1, 0x0
     
 
-    li      t0, BASE_ID
-    lw      t1, 0(t0)
-    lh      t2, 0x694(t1)
+    li      t0, LAST_ITEM
+    lh      t1, 0(t0)
 
-    beqz    t2, return 
+    beqz    t1, return 
     nop
 
     li		a0, gpu_code2
@@ -443,11 +458,14 @@ loop:
     nop
 
 return_item:
-    li      t0, BASE_ID
-    lw      t2, 0(t0)
+    li      t0,  LAST_ITEM
+    sh      t1, 0(t0)
+
+    ;li      t0, BASE_ID
+    ;lw      t2, 0(t0)
     
-    ;li      t2, CURRENT_ITEM
-    sh      t1, 0x694(t2)
+    ;;li      t2, CURRENT_ITEM
+    ;sh      t1, 0x694(t2)
 
     jr ra
     nop
@@ -476,11 +494,14 @@ p_loop:
     nop
 
 p_return_item:
-    li      t0, BASE_ID
-    lw      t2, 0(t0)
+    li      t0,  LAST_ITEM
+    sh      t1, 0(t0)
+
+    ;li      t0, BASE_ID
+    ;lw      t2, 0(t0)
     
-    ;li      t2, CURRENT_ITEM
-    sh      t1, 0x694(t2)
+    ;;li      t2, CURRENT_ITEM
+    ;sh      t1, 0x694(t2)
 
     jr ra
     nop
