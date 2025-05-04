@@ -84,6 +84,12 @@ finish_p_load:
     jal	0x09A6A690
     nop
 
+    li      t0, BASE_ID
+    lw      t1, 0(t0)
+    lbu      t3, 0x325(t1) 
+    bgt     t3, 0x1, subtract_alpha
+    nop
+
     li t0, 0xFFFF
     beq v0, t0, subtract_alpha  ; todo: replace to sub alpha
     nop                 
