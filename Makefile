@@ -11,6 +11,7 @@ CHEAT_FILE := CHEAT.TXT
 $(CHEAT_FILE):
 	mkdir -p bin
 	armips src/gathering_nodes_mhp2ndg.asm
+	armips src/gathering_nodes_mhfu_us.asm
 	python3 gencwcheat.py
 
 modio:

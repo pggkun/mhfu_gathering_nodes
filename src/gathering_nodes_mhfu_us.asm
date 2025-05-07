@@ -9,17 +9,17 @@ TRIGGER equ 0x089210B0 ;Done
 PLAYER_ID equ 0x08921090 ;Done
 LAST_ITEM equ 0x08921080 ;Done
 
-BASE_ID equ 0x99954F4 ;TODO: replace
+BASE_ID equ 0x099998F4 ;Done?
 
 MINING equ 0x51
 BUG_CATCHING equ 0x52
 
-INVENTORY equ 0x09A00846 ;TODO: replace
+INVENTORY equ 0x09A04C46 ;Done
 
-BUTTONS_ADDR equ 0x08A5DD38 ;TODO: replace
+BUTTONS_ADDR equ 0x08A62D88 ;Done
 BUTTON_CIRCLE equ 0x00002000
 
-sceGeListEnQueue equ 0x0890BC50 ;TODO: replace
+sceGeListEnQueue equ 0x0890E200 ;Done
 
 .createfile "./bin/GATHERING_NODES_US.bin", 0x08921110 ;Done (old 0x891E430)
     addiu sp, sp, -0xC    
@@ -27,42 +27,7 @@ sceGeListEnQueue equ 0x0890BC50 ;TODO: replace
     sw    v1, 4($sp)     
     sw    ra, 8($sp)
 
-    jal get_player_id
-    nop
-
-    li t0, PLAYER_ID
-    lb t1, 0(t0)
-    beq t1, 0x1, load_p1
-    nop
-
-    beq t1, 0x2, load_p2
-    nop
-
-    beq t1, 0x3, load_p3
-    nop
-
-    beq t1, 0x4, load_p4
-    nop
-
 load_p1:
-    li t0, BASE_ID
-    lw a0, 0(t0)
-    j finish_p_load
-    nop
-
-load_p2:
-    li t0, BASE_ID
-    lw a0, 0(t0)
-    j finish_p_load
-    nop
-
-load_p3:
-    li t0, BASE_ID
-    lw a0, 0(t0)
-    j finish_p_load
-    nop
-
-load_p4:
     li t0, BASE_ID
     lw a0, 0(t0)
     j finish_p_load
@@ -72,7 +37,7 @@ finish_p_load:
     li a1, 0x09FFF4BE
     li a2, 0x09FFF4A0
 
-    jal	0x09A6F4D4  ;Done
+    jal	0x09A6F490  ;Done
     nop
 
     li      t0, BASE_ID
@@ -424,10 +389,10 @@ return:
     addiu sp, sp, 0xC
 
 
-    lui	v0,0x894 ;TODO: replace ?
-    lhu	a1,-0x7478(v0) ;TODO: replace ?
+    lui	v0,0x894 ;Done
+    lhu	a1,-0x4878(v0) ;Done
 
-    j 0x08845C9C ;TODO: replace
+    j 0x08845CEC ;Done
     nop
 
 get_current_bugnet:
@@ -449,7 +414,7 @@ loop:
     beq     t1, 0x4c9, return_item
     nop
 
-    li      t2, 0x09A008A6 ; last item ;TODO: replace
+    li      t2, 0x09A04CA6 ; Done
     bne     t0, t2, loop
     nop
 
@@ -485,7 +450,7 @@ p_loop:
     beq     t1, 0x4cA, p_return_item
     nop
 
-    li      t2, 0x09A008A6 ; last item ;TODO: replace
+    li      t2, 0x09A04CA6 ; Done
     bne     t0, t2, p_loop
     nop
 
@@ -502,36 +467,6 @@ p_return_item:
     jr ra
     nop
 
-get_player_id:
-    li t0, 0x09A19318 ; addr found in a adhoc recv function breakpoint ;TODO: replace
-    li t1, 0x1
-    lb t2, 0(t0)
-    beq t2, 0xFFFFFFFF, assign_player_id
-    nop
-
-    li t1, 0x2
-    lb t2, 0x4(t0)
-    beq t2, 0xFFFFFFFF, assign_player_id
-    nop
-
-    li t1, 0x3
-    lb t2, 0x8(t0)
-    beq t2, 0xFFFFFFFF, assign_player_id
-    nop
-
-    li t1, 0x4
-    lb t2, 0xC(t0)
-    beq t2, 0xFFFFFFFF, assign_player_id
-    nop
-
-    li t1, 0x1
-
-assign_player_id:
-    li t0, PLAYER_ID
-    sb t1, 0(t0)
-
-    jr ra
-
 .align 0X10
 gpu_code:
 	.word	0xC9000100 ; TexFunc 0 RGBA modulate
@@ -542,11 +477,11 @@ gpu_code:
 
 	.word	0xC2000001 ; TexMode swizzle, 0 levels, shared clut
 	.word	0xC3000005 ; TexFormat CLUT8
-	.word	0xA01527a0 ; Texture address 0: low=1527a0  ;TODO: replace
+	.word	0xA0156ba0 ; Texture address 0: low=156ba0  ;TODO: replace
 	.word	0xA8090100 ; Texture stride 0: 0x0100, address high=09 ;TODO: replace
 	.word	0xB8000808 ; Texture size 0: 512x256
 	.word	0xC500FF03 ; Clut format: 00ff03 (ABGR 8888)
-	.word	0xB01627b0 ; CLUT addr: low=1627b0 ;TODO: replace
+	.word	0xB0166bb0 ; CLUT addr: low=166bb0 ;TODO: replace
 	.word	0xB1090000 ; CLUT addr: high=09 ;TODO: replace
 	.word	0xC4000020 ; Clut load: 091627b0, 1024 bytes
 	.word	0xCB000000 ; TexFlush
@@ -570,11 +505,11 @@ gpu_code_icon:
 
 	.word	0xC2000001 ; TexMode swizzle, 0 levels, shared clut
 	.word	0xC3000005 ; TexFormat CLUT8
-	.word	0xA01830a0; Texture address 0: low=1527a0 ;TODO: replace
+	.word	0xA01874a0; Texture address 0: low=1874a0 ;TODO: replace
 	.word	0xA8090100 ; Texture stride 0: 0x0100, address high=09 ;TODO: replace
 	.word	0xB8000808 ; Texture size 0: 512x256
 	.word	0xC500FF03 ; Clut format: 00ff03 (ABGR 8888)
-	.word	0xB01930b0 ; CLUT addr: low=1627b0 ;TODO: replace
+	.word	0xB01974b0 ; CLUT addr: low=1974b0 ;TODO: replace
 	.word	0xB1090000 ; CLUT addr: high=09 ;TODO: replace
 	.word	0xC4000020 ; Clut load: 091627b0, 1024 bytes
 	.word	0xCB000000 ; TexFlush
@@ -598,11 +533,11 @@ gpu_code2:
 
 	.word	0xC2000001 ; TexMode swizzle, 0 levels, shared clut
 	.word	0xC3000005 ; TexFormat CLUT8
-	.word	0xA01527a0 ; Texture address 0: low=1527a0 ;TODO: replace
+	.word	0xA0156ba0 ; Texture address 0: low=156ba0 ;TODO: replace
 	.word	0xA8090100 ; Texture stride 0: 0x0100, address high=09 ;TODO: replace
 	.word	0xB8000808 ; Texture size 0: 512x256
 	.word	0xC500FF03 ; Clut format: 00ff03 (ABGR 8888)
-	.word	0xB01627b0 ; CLUT addr: low=1627b0 ;TODO: replace
+	.word	0xB0166bb0 ; CLUT addr: low=166bb0 ;TODO: replace
 	.word	0xB1090000 ; CLUT addr: high=09 ;TODO: replace
 	.word	0xC4000020 ; Clut load: 091627b0, 1024 bytes
 	.word	0xCB000000 ; TexFlush
